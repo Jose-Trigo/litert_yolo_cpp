@@ -3,24 +3,30 @@ project(litert_test CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 
-# LiteRT root
-set(LITERT_ROOT "/home/efacec/litert_cc_sdk/litert_cc_sdk")
+# LiteRT source root
+set(LITERT_SRC "/home/efacec/litert_cc_sdk/litert_cc_sdk")
 
-# LiteRT includes (ALL required)
-include_directories(${LITERT_ROOT})
-include_directories(${LITERT_ROOT}/litert)
-include_directories(${LITERT_ROOT}/litert/cc)
-include_directories(${LITERT_ROOT}/litert/c)
-include_directories(${LITERT_ROOT}/litert/build_common)
+# LiteRT build root
+set(LITERT_BUILD "/home/efacec/litert_cc_sdk/litert_cc_sdk_build")
+
+# LiteRT source includes
+include_directories(${LITERT_SRC})
+include_directories(${LITERT_SRC}/litert)
+include_directories(${LITERT_SRC}/litert/cc)
+include_directories(${LITERT_SRC}/litert/c)
+include_directories(${LITERT_SRC}/litert/build_common)
+
+# LiteRT *generated* includes (THIS IS THE MISSING ONE)
+include_directories(${LITERT_BUILD}/include)
 
 # Abseil includes
-include_directories(/home/efacec/litert_cc_sdk/litert_cc_sdk_build/abseil-cpp)
+include_directories(${LITERT_BUILD}/abseil-cpp)
 
 # Flatbuffers includes
-include_directories(/home/efacec/litert_cc_sdk/litert_cc_sdk_build/flatbuffers/include)
+include_directories(${LITERT_BUILD}/flatbuffers/include)
 
 # Library directory
-link_directories(/home/efacec/litert_cc_sdk/litert_cc_sdk_build)
+link_directories(${LITERT_BUILD})
 
 add_executable(litert_test ../main.cpp)
 
