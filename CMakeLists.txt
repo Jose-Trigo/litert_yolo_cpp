@@ -11,9 +11,9 @@ set(LITERT_SDK_SRC "/home/efacec/litert_cc_sdk")
 set(LITERT_SDK_BUILD "/home/efacec/litert_cc_sdk/litert_cc_sdk_build")
 
 # ---------------------------------------------------------
-# 2. Include headers
+# 2. Include headers (BOTH folders are required)
 # ---------------------------------------------------------
-include_directories(${LITERT_SDK_SRC})
+include_directories(${LITERT_SDK_SRC}/include)
 include_directories(${LITERT_SDK_BUILD}/include)
 
 # ---------------------------------------------------------
@@ -24,7 +24,7 @@ link_directories(${LITERT_SDK_BUILD})
 # ---------------------------------------------------------
 # 4. Build your test program
 # ---------------------------------------------------------
-add_executable(litert_test main.cpp)
+add_executable(litert_test ../main.cpp)
 
 # ---------------------------------------------------------
 # 5. Link libraries
