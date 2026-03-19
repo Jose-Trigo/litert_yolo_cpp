@@ -6,8 +6,7 @@ set(CMAKE_CXX_STANDARD 17)
 # LiteRT root
 set(LITERT_ROOT "/home/efacec/litert_cc_sdk/litert_cc_sdk")
 
-# Include directories (all required)
-include_directories(${LITERT_ROOT})
+# Include directories (these are the REAL paths on your system)
 include_directories(${LITERT_ROOT}/litert)
 include_directories(${LITERT_ROOT}/litert/cc)
 include_directories(${LITERT_ROOT}/litert/c)
