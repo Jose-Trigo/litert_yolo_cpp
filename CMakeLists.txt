@@ -6,10 +6,13 @@ set(CMAKE_CXX_STANDARD 17)
 # LiteRT root
 set(LITERT_ROOT "/home/efacec/litert_cc_sdk/litert_cc_sdk")
 
-# Include directories (these are the REAL paths on your system)
+# LiteRT includes
 include_directories(${LITERT_ROOT}/litert)
 include_directories(${LITERT_ROOT}/litert/cc)
 include_directories(${LITERT_ROOT}/litert/c)
+
+# Abseil includes (REQUIRED)
+include_directories(/home/efacec/litert_cc_sdk/litert_cc_sdk_build/abseil-cpp)
 
 # Library directory
 link_directories(/home/efacec/litert_cc_sdk/litert_cc_sdk_build)
