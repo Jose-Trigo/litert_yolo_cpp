@@ -11,11 +11,12 @@ include_directories(${LITERT_ROOT})
 include_directories(${LITERT_ROOT}/litert)
 include_directories(${LITERT_ROOT}/litert/cc)
 include_directories(${LITERT_ROOT}/litert/c)
+include_directories(${LITERT_ROOT}/litert/build_common)
 
 # Abseil includes
 include_directories(/home/efacec/litert_cc_sdk/litert_cc_sdk_build/abseil-cpp)
 
-# Flatbuffers includes (REQUIRED next)
+# Flatbuffers includes
 include_directories(/home/efacec/litert_cc_sdk/litert_cc_sdk_build/flatbuffers/include)
 
 # Library directory
