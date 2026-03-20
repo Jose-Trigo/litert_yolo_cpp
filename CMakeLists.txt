@@ -23,7 +23,7 @@ set(LITERT_LIBS
 )
 
 # Add your minimal C++ benchmark source file
-add_executable(litert_cpp_bench minimal_run_model.cc)
+add_executable(litert_cpp_bench main.cpp)
 
 target_link_libraries(litert_cpp_bench
     ${LITERT_LIBS}
