@@ -6,6 +6,7 @@
 #include "litert/cc/litert_options.h"
 #include "litert/cc/litert_compiled_model.h"
 #include "litert/cc/litert_tensor_buffer.h"
+#include "absl/types/span.h"
 
 int main() {
   // 1. Create environment (no options)
