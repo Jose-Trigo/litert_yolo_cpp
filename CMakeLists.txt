@@ -7,23 +7,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(LITERT_ROOT "/home/efacec/LiteRT-2.1.3/litert")
 set(LITERT_BUILD "${LITERT_ROOT}/build-pi-clang")
 
-# Include directories (ONLY build-pi-clang)
 include_directories(
-    # C++ API
-    ${LITERT_BUILD}/cc/include
-
-    # C API (C++ API depends on these)
-    ${LITERT_BUILD}/c/include
-
-    # Generated build_common headers
-    ${LITERT_BUILD}/include
-
-    # Abseil (required by LiteRT C++ API)
-    ${LITERT_BUILD}/abseil-cpp
-    ${LITERT_BUILD}/abseil-cpp/include
+    ${LITERT_BUILD}                     # <-- REQUIRED ROOT
+    ${LITERT_BUILD}/cc/include          # C++ API
+    ${LITERT_BUILD}/c/include           # C API
+    ${LITERT_BUILD}/include             # build_common
+    ${LITERT_BUILD}/abseil-cpp/include  # Abseil
 )
 
-# Libraries (ONLY build-pi-clang)
 set(LITERT_LIBS
     ${LITERT_BUILD}/c/libLiteRt.so
     ${LITERT_BUILD}/runtime/liblitert_runtime.a
