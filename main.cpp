@@ -7,7 +7,6 @@
 #include "litert/cc/litert_compiled_model.h"
 #include "litert/cc/litert_tensor_buffer.h"
 
-
 int main() {
     const std::string model_path =
         "/home/efacec/ncnn_yolo_cpp/models/yolo_nano_v2_1_class_640_no_filter_int8.tflite";
@@ -25,7 +24,7 @@ int main() {
     }
     auto env = std::move(env_result.Value());
 
-    // 2. Load model
+    // 2. Load model (CPU)
     auto model_result = litert::CompiledModel::Create(
         env, model_path, kLiteRtHwAcceleratorCpu);
     if (!model_result) {
@@ -48,7 +47,10 @@ int main() {
     // Fill input with zeros
     size_t input_size = input_buffers[0].SizeInBytes();
     std::vector<uint8_t> dummy(input_size, 0);
-    input_buffers[0].Write<uint8_t>(absl::MakeConstSpan(dummy));
+
+    input_buffers[0].Write<uint8_t>(
+        absl::MakeConstSpan(dummy.data(), dummy.size())
+    );
 
     // -------------------------------
     // Benchmark settings
