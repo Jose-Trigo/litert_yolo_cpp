@@ -16,20 +16,26 @@ if(NOT EXISTS "${RUN_MODEL_LINK_TXT}")
     "  cd ${LITERT_SRC} && cmake --build ${LITERT_BUILD} --target run_model -j")
 endif()
 
-# Pick the Abseil include root that actually exists
+# Abseil headers
 set(ABSL_INCLUDE_DIR "${LITERT_BUILD}/abseil-cpp")
 if(NOT EXISTS "${ABSL_INCLUDE_DIR}/absl/types/span.h")
   set(ABSL_INCLUDE_DIR "${LITERT_BUILD}/tflite_build/abseil-cpp")
 endif()
 if(NOT EXISTS "${ABSL_INCLUDE_DIR}/absl/types/span.h")
-  message(FATAL_ERROR "Could not find absl/types/span.h in LiteRT build tree")
+  message(FATAL_ERROR "Could not find absl/types/span.h")
+endif()
+
+# Generated LiteRT headers (contains litert/build_common/build_config.h)
+if(NOT EXISTS "${LITERT_BUILD}/include/litert/build_common/build_config.h")
+  message(FATAL_ERROR "Missing ${LITERT_BUILD}/include/litert/build_common/build_config.h")
 endif()
 
 add_executable(litert_cpu_bench main.cpp)
 
 target_include_directories(litert_cpu_bench PRIVATE
-  "${LITERT_ROOT}"     # for litert/cc/...
-  "${ABSL_INCLUDE_DIR}"# for absl/types/span.h
+  "${LITERT_ROOT}"           # litert/cc/...
+  "${LITERT_BUILD}/include"  # generated headers (build_config.h)
+  "${ABSL_INCLUDE_DIR}"      # absl/types/span.h
 )
 
 file(READ "${RUN_MODEL_LINK_TXT}" RUN_MODEL_LINK_CMD)
