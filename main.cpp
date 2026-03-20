@@ -3,9 +3,10 @@
 #include <chrono>
 #include <filesystem>
 
-#include "litert_environment.h"
-#include "litert_compiled_model.h"
-#include "litert_tensor_buffer.h"
+#include "litert/cc/litert_environment.h"
+#include "litert/cc/litert_compiled_model.h"
+#include "litert/cc/litert_tensor_buffer.h"
+
 
 int main() {
     const std::string model_path =
