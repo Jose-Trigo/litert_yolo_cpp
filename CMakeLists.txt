@@ -149,7 +149,12 @@ if(REUSED_LINK_OPTS)
   target_link_options(litert_cpu_bench PRIVATE ${REUSED_LINK_OPTS})
 endif()
 
-target_link_libraries(litert_cpu_bench PRIVATE ${REUSED_LINK_LIBS})
+# Critical for static archives with circular deps
+target_link_libraries(litert_cpu_bench PRIVATE
+  -Wl,--start-group
+  ${REUSED_LINK_LIBS}
+  -Wl,--end-group
+)
 
 set_target_properties(litert_cpu_bench PROPERTIES
   BUILD_RPATH
