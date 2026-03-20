@@ -624,10 +624,6 @@ FETCHCONTENT_SOURCE_DIR_ABSEIL-CPP:PATH=
 FETCHCONTENT_SOURCE_DIR_CPUINFO:PATH=
 
 //When not empty, overrides where to find pre-populated content
-// for egl_headers
-FETCHCONTENT_SOURCE_DIR_EGL_HEADERS:PATH=
-
-//When not empty, overrides where to find pre-populated content
 // for eigen
 FETCHCONTENT_SOURCE_DIR_EIGEN:PATH=
 
@@ -668,14 +664,6 @@ FETCHCONTENT_SOURCE_DIR_NEURO_PILOT:PATH=
 FETCHCONTENT_SOURCE_DIR_NLOHMANN_JSON:PATH=
 
 //When not empty, overrides where to find pre-populated content
-// for opencl_headers
-FETCHCONTENT_SOURCE_DIR_OPENCL_HEADERS:PATH=
-
-//When not empty, overrides where to find pre-populated content
-// for opengl_headers
-FETCHCONTENT_SOURCE_DIR_OPENGL_HEADERS:PATH=
-
-//When not empty, overrides where to find pre-populated content
 // for protobuf
 FETCHCONTENT_SOURCE_DIR_PROTOBUF:PATH=
 
@@ -686,10 +674,6 @@ FETCHCONTENT_SOURCE_DIR_RUY:PATH=
 //When not empty, overrides where to find pre-populated content
 // for tensorflow
 FETCHCONTENT_SOURCE_DIR_TENSORFLOW:PATH=
-
-//When not empty, overrides where to find pre-populated content
-// for vulkan_headers
-FETCHCONTENT_SOURCE_DIR_VULKAN_HEADERS:PATH=
 
 //When not empty, overrides where to find pre-populated content
 // for xnnpack
@@ -703,9 +687,6 @@ FETCHCONTENT_UPDATES_DISCONNECTED_ABSEIL-CPP:BOOL=OFF
 
 //Enables UPDATE_DISCONNECTED behavior just for population of cpuinfo
 FETCHCONTENT_UPDATES_DISCONNECTED_CPUINFO:BOOL=OFF
-
-//Enables UPDATE_DISCONNECTED behavior just for population of egl_headers
-FETCHCONTENT_UPDATES_DISCONNECTED_EGL_HEADERS:BOOL=OFF
 
 //Enables UPDATE_DISCONNECTED behavior just for population of eigen
 FETCHCONTENT_UPDATES_DISCONNECTED_EIGEN:BOOL=OFF
@@ -737,12 +718,6 @@ FETCHCONTENT_UPDATES_DISCONNECTED_NEURO_PILOT:BOOL=OFF
 //Enables UPDATE_DISCONNECTED behavior just for population of nlohmann_json
 FETCHCONTENT_UPDATES_DISCONNECTED_NLOHMANN_JSON:BOOL=OFF
 
-//Enables UPDATE_DISCONNECTED behavior just for population of opencl_headers
-FETCHCONTENT_UPDATES_DISCONNECTED_OPENCL_HEADERS:BOOL=OFF
-
-//Enables UPDATE_DISCONNECTED behavior just for population of opengl_headers
-FETCHCONTENT_UPDATES_DISCONNECTED_OPENGL_HEADERS:BOOL=OFF
-
 //Enables UPDATE_DISCONNECTED behavior just for population of protobuf
 FETCHCONTENT_UPDATES_DISCONNECTED_PROTOBUF:BOOL=OFF
 
@@ -751,9 +726,6 @@ FETCHCONTENT_UPDATES_DISCONNECTED_RUY:BOOL=OFF
 
 //Enables UPDATE_DISCONNECTED behavior just for population of tensorflow
 FETCHCONTENT_UPDATES_DISCONNECTED_TENSORFLOW:BOOL=OFF
-
-//Enables UPDATE_DISCONNECTED behavior just for population of vulkan_headers
-FETCHCONTENT_UPDATES_DISCONNECTED_VULKAN_HEADERS:BOOL=OFF
 
 //Enables UPDATE_DISCONNECTED behavior just for population of xnnpack
 FETCHCONTENT_UPDATES_DISCONNECTED_XNNPACK:BOOL=OFF
@@ -937,8 +909,14 @@ LITERT_BUILD_TESTS:BOOL=OFF
 // ON for Linux/macOS x86_64 hosts)
 LITERT_DISABLE_KLEIDIAI:BOOL=ON
 
+//No help, variable specified on the command line.
+LITERT_ENABLE_GOOGLETENSOR:UNINITIALIZED=OFF
+
 //Enable GPU acceleration support
 LITERT_ENABLE_GPU:BOOL=OFF
+
+//No help, variable specified on the command line.
+LITERT_ENABLE_MEDIATEK:UNINITIALIZED=OFF
 
 //Enable NPU acceleration support
 LITERT_ENABLE_NPU:BOOL=OFF
@@ -946,7 +924,10 @@ LITERT_ENABLE_NPU:BOOL=OFF
 LITERT_ENABLE_QUALCOMM:BOOL=ON
 
 //No help, variable specified on the command line.
-LITERT_ENABLE_VENDOR_DELEGATES:UNINITIALIZED=OFF
+LITERT_ENABLE_ROCKCHIP:UNINITIALIZED=OFF
+
+//No help, variable specified on the command line.
+LITERT_ENABLE_SAMSUNG:UNINITIALIZED=OFF
 
 //Host C++ compiler used for helper host-side tools (e.g. FlatBuffers
 // flatc)
@@ -1086,7 +1067,7 @@ TFLITE_ENABLE_BENCHMARK_MODEL:BOOL=OFF
 TFLITE_ENABLE_EXTERNAL_DELEGATE:BOOL=ON
 
 //Enable GPU
-TFLITE_ENABLE_GPU:BOOL=ON
+TFLITE_ENABLE_GPU:BOOL=OFF
 
 //Enable install rule
 TFLITE_ENABLE_INSTALL:BOOL=OFF
@@ -1281,9 +1262,6 @@ _abseil-cpp_LICENSE_FILE:FILEPATH=/home/efacec/LiteRT-2.1.3/litert/build-pi-clan
 //cpuinfo license file
 _cpuinfo_LICENSE_FILE:FILEPATH=/home/efacec/LiteRT-2.1.3/litert/build-pi-clang/cpuinfo/LICENSE
 
-//egl_headers license file
-_egl_headers_LICENSE_FILE:FILEPATH=_egl_headers_LICENSE_FILE-NOTFOUND
-
 //farmhash license file
 _farmhash_LICENSE_FILE:FILEPATH=/home/efacec/LiteRT-2.1.3/litert/build-pi-clang/farmhash/COPYING
 
@@ -1296,20 +1274,11 @@ _gemmlowp_LICENSE_FILE:FILEPATH=/home/efacec/LiteRT-2.1.3/litert/build-pi-clang/
 //ml_dtypes license file
 _ml_dtypes_LICENSE_FILE:FILEPATH=/home/efacec/LiteRT-2.1.3/litert/build-pi-clang/ml_dtypes/LICENSE
 
-//opencl_headers license file
-_opencl_headers_LICENSE_FILE:FILEPATH=/home/efacec/LiteRT-2.1.3/litert/build-pi-clang/opencl_headers/LICENSE
-
-//opengl_headers license file
-_opengl_headers_LICENSE_FILE:FILEPATH=_opengl_headers_LICENSE_FILE-NOTFOUND
-
 //protobuf license file
 _protobuf_LICENSE_FILE:FILEPATH=/home/efacec/LiteRT-2.1.3/litert/build-pi-clang/protobuf/LICENSE
 
 //ruy license file
 _ruy_LICENSE_FILE:FILEPATH=/home/efacec/LiteRT-2.1.3/litert/build-pi-clang/ruy/LICENSE
-
-//vulkan_headers license file
-_vulkan_headers_LICENSE_FILE:FILEPATH=/home/efacec/LiteRT-2.1.3/litert/build-pi-clang/vulkan_headers/LICENSE.txt
 
 //xnnpack license file
 _xnnpack_LICENSE_FILE:FILEPATH=/home/efacec/LiteRT-2.1.3/litert/build-pi-clang/xnnpack/LICENSE
