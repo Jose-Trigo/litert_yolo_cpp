@@ -8,13 +8,19 @@ set(LITERT_ROOT "/home/efacec/LiteRT-2.1.3/litert")
 set(LITERT_BUILD "${LITERT_ROOT}/build-pi-clang")
 
 include_directories(
+    # LiteRT source-tree headers
     ${LITERT_ROOT}
     ${LITERT_ROOT}/cc
     ${LITERT_ROOT}/runtime
     ${LITERT_ROOT}/build_common
 
+    # LiteRT build-tree headers
     ${LITERT_BUILD}/include
     ${LITERT_BUILD}/cc/include
+
+    # Abseil (required)
+    ${LITERT_BUILD}/abseil-cpp
+    ${LITERT_BUILD}/abseil-cpp/include
 )
 
 set(LITERT_LIBS
