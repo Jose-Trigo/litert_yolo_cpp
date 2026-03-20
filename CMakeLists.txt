@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(LITERT_ROOT "/home/efacec/LiteRT-2.1.3/litert")
 set(LITERT_BUILD "${LITERT_ROOT}/build-pi-clang")
 
-# Include directories (source tree + build tree)
+# Include directories (source tree FIRST)
 include_directories(
     ${LITERT_ROOT}
     ${LITERT_ROOT}/c
@@ -15,12 +15,13 @@ include_directories(
     ${LITERT_ROOT}/runtime
     ${LITERT_ROOT}/build_common
 
+    # build-tree includes AFTER source-tree
     ${LITERT_BUILD}/include
-    ${LITERT_BUILD}/c/include
     ${LITERT_BUILD}/cc/include
+    ${LITERT_BUILD}/c/include
 )
 
-# Libraries to link
+# Libraries
 set(LITERT_LIBS
     ${LITERT_BUILD}/c/libLiteRt.so
     ${LITERT_BUILD}/runtime/liblitert_runtime.a
