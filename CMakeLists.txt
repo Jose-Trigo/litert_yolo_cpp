@@ -4,7 +4,6 @@ project(litert_yolo_cpp LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Adjust if needed
 set(LITERT_ROOT "/home/efacec/LiteRT-2.1.3")
 set(LITERT_SRC  "${LITERT_ROOT}/litert")
 set(LITERT_BUILD "${LITERT_SRC}/build-pi-clang")
@@ -17,23 +16,27 @@ if(NOT EXISTS "${RUN_MODEL_LINK_TXT}")
     "  cd ${LITERT_SRC} && cmake --build ${LITERT_BUILD} --target run_model -j")
 endif()
 
+# Pick the Abseil include root that actually exists
+set(ABSL_INCLUDE_DIR "${LITERT_BUILD}/abseil-cpp")
+if(NOT EXISTS "${ABSL_INCLUDE_DIR}/absl/types/span.h")
+  set(ABSL_INCLUDE_DIR "${LITERT_BUILD}/tflite_build/abseil-cpp")
+endif()
+if(NOT EXISTS "${ABSL_INCLUDE_DIR}/absl/types/span.h")
+  message(FATAL_ERROR "Could not find absl/types/span.h in LiteRT build tree")
+endif()
+
 add_executable(litert_cpu_bench main.cpp)
 
-# Headers for:
-# - "litert/cc/..."
-# - "absl/types/span.h"
 target_include_directories(litert_cpu_bench PRIVATE
-  "${LITERT_ROOT}"                               # parent of litert/
-  "${LITERT_BUILD}/_deps/com_google_absl-src"   # absl headers
+  "${LITERT_ROOT}"     # for litert/cc/...
+  "${ABSL_INCLUDE_DIR}"# for absl/types/span.h
 )
 
-# Parse run_model link command and reuse all its link items.
 file(READ "${RUN_MODEL_LINK_TXT}" RUN_MODEL_LINK_CMD)
 separate_arguments(RUN_MODEL_LINK_ARGS UNIX_COMMAND "${RUN_MODEL_LINK_CMD}")
 
 set(REUSED_LINK_ITEMS "")
 foreach(arg IN LISTS RUN_MODEL_LINK_ARGS)
-  # Keep libs and linker flags only
   if(arg MATCHES "\\.(a|so)(\\.[0-9]+)*$"
      OR arg MATCHES "^-l.+"
      OR arg STREQUAL "-pthread"
@@ -46,10 +49,8 @@ if(REUSED_LINK_ITEMS STREQUAL "")
   message(FATAL_ERROR "Could not extract link items from ${RUN_MODEL_LINK_TXT}")
 endif()
 
-# Reuse the same link universe as run_model
 target_link_libraries(litert_cpu_bench PRIVATE ${REUSED_LINK_ITEMS})
 
-# Runtime .so lookup
 set_target_properties(litert_cpu_bench PROPERTIES
   BUILD_RPATH "${LITERT_BUILD}/c;${LITERT_BUILD}/cc"
 )
