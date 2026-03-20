@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(litert_cpp_benchmark CXX)
 
-# Set compiler and standard
 set(CMAKE_CXX_COMPILER clang++)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -11,18 +10,19 @@ set(LITERT_ROOT "/home/efacec/LiteRT-2.1.3")
 set(LITERT_SRC "${LITERT_ROOT}/litert")
 set(LITERT_BUILD "${LITERT_SRC}/build-pi-clang")
 
-# Include ONLY the C++ API headers
+# Include both build and source headers for C++ API
 include_directories(
+    ${LITERT_SRC}
     ${LITERT_SRC}/cc
+    ${LITERT_BUILD}/cc/include
     ${LITERT_BUILD}/include
 )
 
-# Link ONLY the C++ runtime library
+# Link the correct LiteRT runtime library (CPU)
 set(LITERT_LIBS
-    ${LITERT_BUILD}/cc/libLiteRt.so
+    ${LITERT_BUILD}/c/libLiteRt.so
 )
 
-# Add your minimal C++ benchmark source file
 add_executable(litert_cpp_bench main.cpp)
 
 target_link_libraries(litert_cpp_bench
