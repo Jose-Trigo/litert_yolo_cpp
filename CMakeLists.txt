@@ -10,13 +10,15 @@ set(LITERT_BUILD "${LITERT_ROOT}/build-pi-clang")
 # Include directories
 include_directories(
     ${LITERT_ROOT}
-    ${LITERT_ROOT}/runtime
     ${LITERT_ROOT}/c
+    ${LITERT_ROOT}/runtime
+
+    ${LITERT_BUILD}/include
     ${LITERT_BUILD}/c/include
     ${LITERT_BUILD}/cc/include
 )
 
-# Libraries to link
+# Libraries
 set(LITERT_LIBS
     ${LITERT_BUILD}/c/libLiteRt.so
     ${LITERT_BUILD}/runtime/liblitert_runtime.a
