@@ -1,13 +1,15 @@
+// ...existing code...
 #include <chrono>
 #include <cstdint>
 #include <iostream>
 #include <vector>
 
-// C API
-#include "litert/c/litert_compiled_model.h"
-#include "litert/c/litert_environment.h"
-#include "litert/c/litert_options.h"
-#include "litert/c/litert_tensor_buffer.h"
+// C API (exported include layout from build-pi-clang/include)
+#include "c/litert_compiled_model.h"
+#include "c/litert_environment.h"
+#include "c/litert_options.h"
+#include "c/litert_tensor_buffer.h"
+// ...existing code...
 
 static bool Ok(LiteRtStatus s) { return s == kLiteRtStatusOk; }
 
