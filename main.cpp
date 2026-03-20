@@ -1,97 +1,75 @@
-// minimal_litert_run.cpp
-// A tiny, adapted version of run_model.cc core logic.
-
-#include <cstdint>
+#include <chrono>
 #include <cstdlib>
 #include <iostream>
 #include <vector>
-
-#include "absl/log/absl_log.h"
-#include "absl/strings/string_view.h"
-#include "absl/types/span.h"
-
 #include "litert/cc/litert_environment.h"
+#include "litert/cc/litert_options.h"
 #include "litert/cc/litert_compiled_model.h"
 #include "litert/cc/litert_tensor_buffer.h"
-#include "litert/cc/litert_expected.h"
-#include "litert/cc/litert_macros.h"
 
-namespace {
+int main() {
+  // 1. Create environment (no options)
+  auto env_result = litert::Environment::Create({});
+  if (!env_result) {
+    std::cerr << "Failed to create environment\n";
+    return 1;
+  }
+  auto env = std::move(*env_result);
 
-using litert::CompiledModel;
-using litert::Environment;
-using litert::Expected;
-using litert::TensorBuffer;
+  // 2. Create options (defaults: CPU)
+  auto options_result = litert::Options::Create();
+  if (!options_result) {
+    std::cerr << "Failed to create options\n";
+    return 1;
+  }
+  auto options = std::move(*options_result);
 
-// Run a single inference on signature 0.
-Expected<void> RunOnce(absl::string_view model_path) {
-  // 1. Create environment (no special options).
-  LITERT_ASSIGN_OR_RETURN(auto env, Environment::Create({}));
+  // 3. Load model (replace with your model path)
+  const char* model_path = "your_model.tflite";
+  auto model_result = litert::CompiledModel::Create(env, model_path, options);
+  if (!model_result) {
+    std::cerr << "Failed to load model\n";
+    return 1;
+  }
+  auto model = std::move(*model_result);
 
-  // 2. Create compiled model on CPU.
-  //    This matches the docs: CompiledModel::Create(env, "mymodel.tflite", kLiteRtHwAcceleratorCpu)
-  LITERT_ASSIGN_OR_RETURN(
-      auto compiled_model,
-      CompiledModel::Create(env, std::string(model_path),
-                            litert::HwAccelerators::kCpu));
+  // 4. Create input/output buffers (signature 0)
+  auto in_result = model.CreateInputBuffers(0);
+  if (!in_result) {
+    std::cerr << "Failed to create input buffers\n";
+    return 1;
+  }
+  auto input_buffers = std::move(*in_result);
 
-  const size_t kSignatureIndex = 0;
+  auto out_result = model.CreateOutputBuffers(0);
+  if (!out_result) {
+    std::cerr << "Failed to create output buffers\n";
+    return 1;
+  }
+  auto output_buffers = std::move(*out_result);
 
-  // 3. Create input/output buffers for that signature.
-  LITERT_ASSIGN_OR_RETURN(auto input_buffers,
-                          compiled_model.CreateInputBuffers(kSignatureIndex));
-  LITERT_ASSIGN_OR_RETURN(auto output_buffers,
-                          compiled_model.CreateOutputBuffers(kSignatureIndex));
-
-  if (input_buffers.empty() || output_buffers.empty()) {
-    return litert::Error(litert::Status::kErrorInvalidArgument,
-                         "Model has no inputs or outputs.");
+  // 5. Fill input buffers with zeros (or your data)
+  for (auto& buf : input_buffers) {
+    auto type_result = buf.TensorType();
+    if (!type_result) continue;
+    auto type = *type_result;
+    size_t total = 1;
+    for (size_t d = 0; d < type.Layout().Rank(); ++d)
+      total *= type.Layout().Dimensions()[d];
+    std::vector<uint8_t> zeros(total * 4, 0); // 4 bytes per element (float/int32)
+    buf.Write<uint8_t>(absl::MakeConstSpan(zeros));
   }
 
-  // 4. Fill first input with zeros.
-  //    NOTE: TensorBuffer::Size() returns size in bytes.
-  LITERT_ASSIGN_OR_RETURN(size_t input_size_bytes,
-                          input_buffers[0].Size());
-  std::vector<uint8_t> input_data(input_size_bytes, 0);
-
-  LITERT_RETURN_IF_ERROR(
-      input_buffers[0].Write<uint8_t>(absl::MakeConstSpan(input_data)));
-
-  // 5. Run the model once.
-  LITERT_RETURN_IF_ERROR(
-      compiled_model.Run(kSignatureIndex, input_buffers, output_buffers));
-
-  // 6. Read back first output (just to prove it works).
-  LITERT_ASSIGN_OR_RETURN(size_t output_size_bytes,
-                          output_buffers[0].Size());
-  std::vector<uint8_t> output_data(output_size_bytes);
-
-  LITERT_RETURN_IF_ERROR(
-      output_buffers[0].Read<uint8_t>(absl::MakeSpan(output_data)));
-
-  // Print a few bytes.
-  std::cout << "Output[0] first bytes: ";
-  for (size_t i = 0; i < std::min<size_t>(10, output_data.size()); ++i) {
-    std::cout << static_cast<int>(output_data[i]) << " ";
+  // 6. Run inference and time it
+  auto start = std::chrono::high_resolution_clock::now();
+  auto status = model.Run(0, input_buffers, output_buffers);
+  auto end = std::chrono::high_resolution_clock::now();
+  if (!status) {
+    std::cerr << "Inference failed\n";
+    return 1;
   }
-  std::cout << std::endl;
+  auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+  std::cout << "Inference took " << duration.count() << " us\n";
 
-  return {};
-}
-
-}  // namespace
-
-int main(int argc, char** argv) {
-  if (argc < 2) {
-    std::cerr << "Usage: litert_bench <model.tflite>\n";
-    return EXIT_FAILURE;
-  }
-
-  absl::string_view model_path(argv[1]);
-  auto res = RunOnce(model_path);
-  if (!res) {
-    ABSL_LOG(ERROR) << "Error: " << res.Error().Message();
-    return EXIT_FAILURE;
-  }
-  return EXIT_SUCCESS;
+  return 0;
 }
