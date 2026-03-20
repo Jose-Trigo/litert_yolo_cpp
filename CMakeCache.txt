@@ -945,6 +945,9 @@ LITERT_ENABLE_NPU:BOOL=OFF
 
 LITERT_ENABLE_QUALCOMM:BOOL=ON
 
+//No help, variable specified on the command line.
+LITERT_ENABLE_VENDOR_DELEGATES:UNINITIALIZED=OFF
+
 //Host C++ compiler used for helper host-side tools (e.g. FlatBuffers
 // flatc)
 LITERT_HOST_CXX_COMPILER:FILEPATH=
