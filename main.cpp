@@ -19,25 +19,33 @@ int main() {
     // 1. Create environment
     auto env_result = litert::Environment::Create({});
     if (!env_result) {
-        std::cerr << "ERROR: Failed to create Environment\n";
+        std::cerr << "ERROR: Failed to create Environment: "
+                  << env_result.Error() << "\n";
         return 1;
     }
     auto env = std::move(env_result.Value());
 
-    // 2. Load model (CPU)
+    // 2. Load model (use C++ HwAccelerators enum, not LiteRtHwAccelerators)
     auto model_result = litert::CompiledModel::Create(
-        env, model_path, kLiteRtHwAcceleratorCpu);
+        env, model_path, litert::HwAccelerators::kCpu);
     if (!model_result) {
-        std::cerr << "ERROR: Failed to load model\n";
+        std::cerr << "ERROR: Failed to load model: "
+                  << model_result.Error() << "\n";
         return 1;
     }
     auto compiled_model = std::move(model_result.Value());
 
     // 3. Create input/output buffers
     auto in_bufs_result = compiled_model.CreateInputBuffers();
+    if (!in_bufs_result) {
+        std::cerr << "ERROR: Failed to create input buffers: "
+                  << in_bufs_result.Error() << "\n";
+        return 1;
+    }
     auto out_bufs_result = compiled_model.CreateOutputBuffers();
-    if (!in_bufs_result || !out_bufs_result) {
-        std::cerr << "ERROR: Failed to create buffers\n";
+    if (!out_bufs_result) {
+        std::cerr << "ERROR: Failed to create output buffers: "
+                  << out_bufs_result.Error() << "\n";
         return 1;
     }
 
@@ -48,9 +56,14 @@ int main() {
     size_t input_size = input_buffers[0].SizeInBytes();
     std::vector<uint8_t> dummy(input_size, 0);
 
-    input_buffers[0].Write<uint8_t>(
-        absl::MakeConstSpan(dummy.data(), dummy.size())
-    );
+    // Use MakeConstSpan(pointer, size) to avoid template confusion
+    auto write_result = input_buffers[0].Write<uint8_t>(
+        absl::MakeConstSpan(dummy.data(), dummy.size()));
+    if (!write_result) {
+        std::cerr << "ERROR: Failed to write to input buffer: "
+                  << write_result.Error() << "\n";
+        return 1;
+    }
 
     // -------------------------------
     // Benchmark settings
@@ -72,16 +85,17 @@ int main() {
         compiled_model.Run(input_buffers, output_buffers);
         auto t1 = std::chrono::high_resolution_clock::now();
 
-        double ms = std::chrono::duration<double, std::milli>(t1 - t0).count();
+        double ms =
+            std::chrono::duration<double, std::milli>(t1 - t0).count();
         times_ms.push_back(ms);
     }
 
     // Compute stats
-    double sum = 0, min_t = 1e9, max_t = 0;
+    double sum = 0.0, min_t = 1e9, max_t = 0.0;
     for (double t : times_ms) {
         sum += t;
-        min_t = std::min(min_t, t);
-        max_t = std::max(max_t, t);
+        if (t < min_t) min_t = t;
+        if (t > max_t) max_t = t;
     }
     double avg = sum / timed_runs;
 
