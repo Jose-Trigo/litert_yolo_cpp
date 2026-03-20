@@ -10,9 +10,9 @@ set(LITERT_BUILD "${LITERT_SRC}/build-pi-clang")
 
 add_executable(litert_c_bench main.cpp)
 
+# IMPORTANT: only the build-exported headers (single API surface)
 target_include_directories(litert_c_bench PRIVATE
-  "${LITERT_ROOT}"            # so "litert/c/..." resolves
-  "${LITERT_BUILD}/include"   # generated/exported headers
+  "${LITERT_BUILD}/include"
 )
 
 target_link_libraries(litert_c_bench PRIVATE
