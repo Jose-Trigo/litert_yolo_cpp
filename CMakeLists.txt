@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.20)
 
-# Force clang if not already chosen (works on fresh build dir)
+# Force clang on fresh build dirs
 if(NOT DEFINED CMAKE_C_COMPILER)
   set(CMAKE_C_COMPILER clang CACHE STRING "" FORCE)
 endif()
@@ -14,7 +14,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(LITERT_ROOT "/home/efacec/LiteRT-2.1.3")
-set(LITERT_SRC "${LITERT_ROOT}/litert")
+set(LITERT_SRC  "${LITERT_ROOT}/litert")
 set(LITERT_BUILD "${LITERT_SRC}/build-pi-clang")
 set(RUN_MODEL_LINK_TXT "${LITERT_BUILD}/tools/CMakeFiles/run_model.dir/link.txt")
 
@@ -25,7 +25,7 @@ if(NOT EXISTS "${RUN_MODEL_LINK_TXT}")
     "  cd ${LITERT_SRC} && cmake --build ${LITERT_BUILD} --target run_model -j")
 endif()
 
-# Abseil include root (pick one that exists)
+# Headers
 set(ABSL_INCLUDE_DIR "${LITERT_BUILD}/abseil-cpp")
 if(NOT EXISTS "${ABSL_INCLUDE_DIR}/absl/types/span.h")
   set(ABSL_INCLUDE_DIR "${LITERT_BUILD}/tflite_build/abseil-cpp")
@@ -37,7 +37,6 @@ if(NOT EXISTS "${ABSL_INCLUDE_DIR}/absl/types/span.h")
   message(FATAL_ERROR "Could not find absl/types/span.h in LiteRT build tree")
 endif()
 
-# Generated LiteRT headers
 if(NOT EXISTS "${LITERT_BUILD}/include/litert/build_common/build_config.h")
   message(FATAL_ERROR "Missing ${LITERT_BUILD}/include/litert/build_common/build_config.h")
 endif()
@@ -45,57 +44,87 @@ endif()
 add_executable(litert_cpu_bench main.cpp)
 
 target_include_directories(litert_cpu_bench PRIVATE
-  "${LITERT_ROOT}"           # for #include "litert/cc/..."
-  "${LITERT_BUILD}/include"  # generated headers
-  "${ABSL_INCLUDE_DIR}"      # Abseil headers
+  "${LITERT_ROOT}"
+  "${LITERT_BUILD}/include"
+  "${ABSL_INCLUDE_DIR}"
 )
 
-# Parse run_model link command and reuse its libs/paths/options safely.
+# Parse run_model link command and reuse link items.
 file(READ "${RUN_MODEL_LINK_TXT}" RUN_MODEL_LINK_CMD)
 separate_arguments(RUN_MODEL_LINK_ARGS UNIX_COMMAND "${RUN_MODEL_LINK_CMD}")
+
+# IMPORTANT: run_model's link command is relative to this dir
+set(RUN_MODEL_WORKDIR "${LITERT_BUILD}/tools")
 get_filename_component(RUN_MODEL_LINK_DIR "${RUN_MODEL_LINK_TXT}" DIRECTORY)
 
 set(REUSED_LINK_DIRS "")
 set(REUSED_LINK_LIBS "")
 set(REUSED_LINK_OPTS "")
 
+function(resolve_existing_path out_var p)
+  if(IS_ABSOLUTE "${p}" AND EXISTS "${p}")
+    set(${out_var} "${p}" PARENT_SCOPE)
+    return()
+  endif()
+
+  set(c1 "${RUN_MODEL_WORKDIR}/${p}")
+  set(c2 "${RUN_MODEL_LINK_DIR}/${p}")
+  set(c3 "${LITERT_BUILD}/${p}")
+
+  if(EXISTS "${c1}")
+    set(${out_var} "${c1}" PARENT_SCOPE)
+  elseif(EXISTS "${c2}")
+    set(${out_var} "${c2}" PARENT_SCOPE)
+  elseif(EXISTS "${c3}")
+    set(${out_var} "${c3}" PARENT_SCOPE)
+  else()
+    set(${out_var} "" PARENT_SCOPE)
+  endif()
+endfunction()
+
 foreach(arg IN LISTS RUN_MODEL_LINK_ARGS)
-  # Keep useful linker options
+  # Useful linker options
   if(arg STREQUAL "-pthread" OR arg MATCHES "^-Wl,.+")
     list(APPEND REUSED_LINK_OPTS "${arg}")
     continue()
   endif()
 
-  # Link search dirs
+  # -L search paths
   if(arg MATCHES "^-L.+")
-    string(REGEX REPLACE "^-L" "" _ldir "${arg}")
-    if(IS_ABSOLUTE "${_ldir}")
-      list(APPEND REUSED_LINK_DIRS "${_ldir}")
-    else()
-      get_filename_component(_abs_ldir "${RUN_MODEL_LINK_DIR}/${_ldir}" ABSOLUTE)
-      list(APPEND REUSED_LINK_DIRS "${_abs_ldir}")
+    string(REGEX REPLACE "^-L" "" ldir "${arg}")
+    resolve_existing_path(abs_ldir "${ldir}")
+    if(NOT abs_ldir STREQUAL "")
+      list(APPEND REUSED_LINK_DIRS "${abs_ldir}")
     endif()
     continue()
   endif()
 
-  # Absolute lib files
+  # Absolute lib file
   if(arg MATCHES "^/.*\\.(a|so)(\\.[0-9]+)*$")
-    list(APPEND REUSED_LINK_LIBS "${arg}")
+    if(EXISTS "${arg}")
+      list(APPEND REUSED_LINK_LIBS "${arg}")
+    endif()
     continue()
   endif()
 
-  # Relative lib files
+  # Relative lib file
   if(arg MATCHES "^(\\./|\\.\\./).+\\.(a|so)(\\.[0-9]+)*$")
-    get_filename_component(_abs_rel "${RUN_MODEL_LINK_DIR}/${arg}" ABSOLUTE)
-    list(APPEND REUSED_LINK_LIBS "${_abs_rel}")
+    resolve_existing_path(abs_rel_lib "${arg}")
+    if(NOT abs_rel_lib STREQUAL "")
+      list(APPEND REUSED_LINK_LIBS "${abs_rel_lib}")
+    endif()
     continue()
   endif()
 
-  # Malformed '-l../path/libxxx.a' style from link.txt -> convert to file path
+  # Malformed "-l../path/libxxx.a" style
   if(arg MATCHES "^-l(.+/.*\\.(a|so)(\\.[0-9]+)*)$")
-    string(REGEX REPLACE "^-l" "" _libpath "${arg}")
-    get_filename_component(_abs_lib "${RUN_MODEL_LINK_DIR}/${_libpath}" ABSOLUTE)
-    list(APPEND REUSED_LINK_LIBS "${_abs_lib}")
+    string(REGEX REPLACE "^-l" "" libpath "${arg}")
+    resolve_existing_path(abs_malformed_lib "${libpath}")
+    if(NOT abs_malformed_lib STREQUAL "")
+      list(APPEND REUSED_LINK_LIBS "${abs_malformed_lib}")
+    else()
+      message(FATAL_ERROR "Could not resolve library path from: ${arg}")
+    endif()
     continue()
   endif()
 
