@@ -1,4 +1,10 @@
 cmake_minimum_required(VERSION 3.20)
+
+
+# --- Force Clang (must be before project()) ---
+set(CMAKE_C_COMPILER clang)
+set(CMAKE_CXX_COMPILER clang++)
+# ----------------------------------------------
 project(litert_yolo_cpp LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
