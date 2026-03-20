@@ -1,22 +1,32 @@
 cmake_minimum_required(VERSION 3.10)
-project(litert_c_api_test C)
+project(litert_benchmark)
 
-set(LITERT_BUILD "/home/efacec/litert_cc_sdk/litert_cc_sdk_build")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# LiteRT generated headers (C API lives here)
-include_directories(${LITERT_BUILD}/include)
+# Path to your LiteRT build
+set(LITERT_ROOT "/home/efacec/LiteRT-2.1.3/litert/build-pi-clang")
 
-# Abseil + Flatbuffers (needed by LiteRT C API)
-include_directories(${LITERT_BUILD}/abseil-cpp)
-include_directories(${LITERT_BUILD}/flatbuffers/include)
+# Include directories
+include_directories(
+    ${LITERT_ROOT}
+    ${LITERT_ROOT}/runtime
+    ${LITERT_ROOT}/c
+)
 
-# Link directory for liblitert_c_api.a
-link_directories(${LITERT_BUILD})
+# LiteRT libraries
+set(LITERT_LIBS
+    ${LITERT_ROOT}/libLiteRt.so
+    ${LITERT_ROOT}/runtime/liblitert_runtime.a
+    ${LITERT_ROOT}/c/liblitert_runtime_c_api_shared_lib.so
+)
 
-add_executable(litert_test ../main.c)
+# Your benchmark program
+add_executable(litert_bench main.cpp)
 
-target_link_libraries(litert_test
-    litert_c_api
+# Link LiteRT
+target_link_libraries(litert_bench
+    ${LITERT_LIBS}
     pthread
     dl
 )
