@@ -1,321 +1,55 @@
-# Copyright 2025 Google LLC.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 cmake_minimum_required(VERSION 3.20)
+project(litert_yolo_cpp LANGUAGES CXX)
 
-# Tool display
-add_library(litert_tool_display STATIC
-    tool_display.cc
-)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-target_include_directories(litert_tool_display
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>
-        $<BUILD_INTERFACE:${TENSORFLOW_SOURCE_DIR}>
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}
-)
+# Adjust if needed
+set(LITERT_ROOT "/home/efacec/LiteRT-2.1.3")
+set(LITERT_SRC  "${LITERT_ROOT}/litert")
+set(LITERT_BUILD "${LITERT_SRC}/build-pi-clang")
+set(RUN_MODEL_LINK_TXT "${LITERT_BUILD}/tools/CMakeFiles/run_model.dir/link.txt")
 
-target_link_libraries(litert_tool_display
-    PUBLIC
-        litert_cc_api
-        litert_cc_internal
-        absl::strings
-        absl::string_view
-        absl::span
-        absl::status
-        absl::statusor
-)
-
-# LiteRT tensor_utils
-add_library(litert_tensor_utils STATIC
-    tensor_utils.cc
-)
-
-target_include_directories(litert_tensor_utils
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>
-        $<BUILD_INTERFACE:${TENSORFLOW_SOURCE_DIR}>
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
-target_link_libraries(litert_tensor_utils
-    PRIVATE
-        absl::log
-        absl::log_internal_message
-        absl::span
-        absl::string_view
-        litert_cc_api
-)
-
-
-# LiteRT Dump
-add_library(litert_dump STATIC
-    dump.cc
-)
-
-target_include_directories(litert_dump
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>
-        $<BUILD_INTERFACE:${TENSORFLOW_SOURCE_DIR}>
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
-target_link_libraries(litert_dump
-    PUBLIC
-        litert_core
-        litert_core_model
-        tensorflow-lite
-        absl::strings
-        absl::status
-        absl::statusor
-)
-
-# Apply plugin
-add_library(litert_apply_plugin STATIC
-    apply_plugin.cc
-)
-
-target_include_directories(litert_apply_plugin
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>
-        $<BUILD_INTERFACE:${TENSORFLOW_SOURCE_DIR}>
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
-target_link_libraries(litert_apply_plugin
-    PUBLIC
-        litert_core
-        litert_core_model
-        absl::strings
-        absl::status
-        absl::statusor
-)
-
-# NPU numerics check
-add_library(litert_npu_numerics_check STATIC
-    npu_numerics_check.cc
-)
-
-target_include_directories(litert_npu_numerics_check
-    PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/..>
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../..>
-        $<BUILD_INTERFACE:${TENSORFLOW_SOURCE_DIR}>
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
-target_link_libraries(litert_npu_numerics_check
-    PUBLIC
-        litert_cc_api
-        litert_runtime
-        absl::strings
-        absl::status
-        absl::statusor
-        litert_tensor_utils
-)
-
-# Add flags
-add_subdirectory(flags)
-
-# Common libraries for tools that use TFLite
-set(LITERT_TOOL_COMMON_LIBS
-    litert_c_api
-    litert_cc_api
-    litert_cc_internal
-    litert_cc_options
-    litert_compiler_plugin
-    litert_core
-    litert_core_model
-    litert_runtime
-)
-
-set(ABSEIL_TOOL_LIBS
-    absl::check
-    absl::die_if_null
-    absl::flags
-    absl::flags_parse
-    absl::log
-    absl::log_internal_check_op
-    absl::log_internal_message
-    absl::random_random
-    absl::string_view
-    absl::span
-    absl::status
-    absl::statusor
-)
-
-# run_model
-add_executable(run_model
-    run_model.cc
-)
-
-target_include_directories(run_model
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/..
-        ${CMAKE_CURRENT_SOURCE_DIR}/../..
-        ${TENSORFLOW_SOURCE_DIR}
-)
-
-# Platform-aware linking
-if(ANDROID OR APPLE)
-    target_link_libraries(run_model
-        PRIVATE
-            litert_tool_display
-            litert_tool_flags_google_tensor
-            litert_tool_flags_intel_openvino
-            litert_tool_flags_mediatek
-            litert_tool_flags_qualcomm
-            ${LITERT_TOOL_COMMON_LIBS}
-            tensorflow-lite
-            ${ABSEIL_TOOL_LIBS}
-            Threads::Threads
-            litert_tensor_utils
-    )
-else()
-    target_link_libraries(run_model
-        PRIVATE
-            litert_tool_display
-            litert_tool_flags_google_tensor
-            litert_tool_flags_intel_openvino
-            litert_tool_flags_mediatek
-            litert_tool_flags_qualcomm
-            Threads::Threads
-            tensorflow-lite
-            "-Wl,--start-group"
-            ${ABSEIL_TOOL_LIBS}
-            ${LITERT_TOOL_COMMON_LIBS}
-            "-Wl,--end-group"
-            ${CMAKE_DL_LIBS}
-            litert_tensor_utils
-    )
+if(NOT EXISTS "${RUN_MODEL_LINK_TXT}")
+  message(FATAL_ERROR
+    "Missing ${RUN_MODEL_LINK_TXT}\n"
+    "Build run_model first:\n"
+    "  cd ${LITERT_SRC} && cmake --build ${LITERT_BUILD} --target run_model -j")
 endif()
 
-# analyze_model
-add_executable(analyze_model
-    analyze_model_main.cc
+add_executable(litert_cpu_bench main.cpp)
+
+# Headers for:
+# - "litert/cc/..."
+# - "absl/types/span.h"
+target_include_directories(litert_cpu_bench PRIVATE
+  "${LITERT_ROOT}"                               # parent of litert/
+  "${LITERT_BUILD}/_deps/com_google_absl-src"   # absl headers
 )
 
-target_include_directories(analyze_model
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/..
-        ${CMAKE_CURRENT_SOURCE_DIR}/../..
-        ${TENSORFLOW_SOURCE_DIR}
-)
+# Parse run_model link command and reuse all its link items.
+file(READ "${RUN_MODEL_LINK_TXT}" RUN_MODEL_LINK_CMD)
+separate_arguments(RUN_MODEL_LINK_ARGS UNIX_COMMAND "${RUN_MODEL_LINK_CMD}")
 
-# Platform-aware linking for analyze_model
-if(ANDROID OR APPLE)
-    target_link_libraries(analyze_model
-        PRIVATE
-            litert_dump
-            litert_tool_display
-            litert_c_api
-            litert_core
-            litert_core_model
-            tensorflow-lite
-            ${ABSEIL_TOOL_LIBS}
-            Threads::Threads
-    )
-else()
-    target_link_libraries(analyze_model
-        PRIVATE
-            Threads::Threads
-            tensorflow-lite
-            "-Wl,--start-group"
-            ${ABSEIL_TOOL_LIBS}
-            litert_dump
-            litert_tool_display
-            litert_c_api
-            litert_core
-            litert_core_model
-            "-Wl,--end-group"
-            ${CMAKE_DL_LIBS}
-    )
+set(REUSED_LINK_ITEMS "")
+foreach(arg IN LISTS RUN_MODEL_LINK_ARGS)
+  # Keep libs and linker flags only
+  if(arg MATCHES "\\.(a|so)(\\.[0-9]+)*$"
+     OR arg MATCHES "^-l.+"
+     OR arg STREQUAL "-pthread"
+     OR arg MATCHES "^-Wl,.+")
+    list(APPEND REUSED_LINK_ITEMS "${arg}")
+  endif()
+endforeach()
+
+if(REUSED_LINK_ITEMS STREQUAL "")
+  message(FATAL_ERROR "Could not extract link items from ${RUN_MODEL_LINK_TXT}")
 endif()
 
-# apply_plugin
-add_executable(apply_plugin_main
-    apply_plugin_main.cc
-)
+# Reuse the same link universe as run_model
+target_link_libraries(litert_cpu_bench PRIVATE ${REUSED_LINK_ITEMS})
 
-target_include_directories(apply_plugin_main
-    PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/..
-        ${CMAKE_CURRENT_SOURCE_DIR}/../..
-        ${TENSORFLOW_SOURCE_DIR}
-)
-
-# Platform-aware linking
-if(ANDROID OR APPLE)
-    target_link_libraries(apply_plugin_main
-        PRIVATE
-            litert_tool_display
-            litert_apply_plugin
-            litert_dump
-            litert_tool_flags_apply_plugin
-            litert_tool_flags_common
-            litert_tool_flags_google_tensor
-            litert_tool_flags_intel_openvino
-            litert_tool_flags_mediatek
-            litert_tool_flags_qualcomm
-            ${LITERT_TOOL_COMMON_LIBS}
-            tensorflow-lite
-            ${ABSEIL_TOOL_LIBS}
-            Threads::Threads
-        )
-else()
-    target_link_libraries(apply_plugin_main
-        PRIVATE
-            litert_tool_flags_apply_plugin
-            litert_tool_flags_common
-            litert_tool_flags_google_tensor
-            litert_tool_flags_intel_openvino
-            litert_tool_flags_mediatek
-            litert_tool_flags_qualcomm
-            Threads::Threads
-            tensorflow-lite
-            "-Wl,--start-group"
-            litert_tool_display
-            litert_apply_plugin
-            litert_dump
-            ${ABSEIL_TOOL_LIBS}
-            ${LITERT_TOOL_COMMON_LIBS}
-            "-Wl,--end-group"
-            ${CMAKE_DL_LIBS}
-    )
-endif()
-# Platform-specific configurations for all executables
-if(LITERT_PLATFORM_ANDROID)
-    target_link_libraries(run_model PRIVATE ${LOG_LIB})
-    target_link_libraries(analyze_model PRIVATE ${LOG_LIB})
-    target_link_libraries(apply_plugin_main PRIVATE ${LOG_LIB})
-    # Statically link TFLite GPU/GL core objects for tool executables on Android.
-    if(TARGET litert_tflite_gpu_gl_core)
-        target_link_libraries(run_model PRIVATE litert_tflite_gpu_gl_core)
-        target_link_libraries(apply_plugin_main PRIVATE litert_tflite_gpu_gl_core)
-    endif()
-endif()
-
-# Install targets
-install(TARGETS run_model analyze_model apply_plugin_main
-    RUNTIME DESTINATION bin
+# Runtime .so lookup
+set_target_properties(litert_cpu_bench PROPERTIES
+  BUILD_RPATH "${LITERT_BUILD}/c;${LITERT_BUILD}/cc"
 )
